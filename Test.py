@@ -65,7 +65,7 @@ def plot_shelfs(shelfs):
 
 AGVs = []
 shelfs = []
-shelfPositions = np.array([(75, warehouseHeight - 75 ), (125, warehouseHeight - 75 ), (225, warehouseHeight - 75 ) (275, warehouseHeight - 75 ), (325, warehouseHeight - 75 ) (375, warehouseHeight - 75 ), (425, warehouseHeight - 75 ) (475, warehouseHeight - 75 ), (525, warehouseHeight - 75 ) (575, warehouseHeight - 75 )])
+shelfPositions = np.array([[75, warehouseHeight - 75 ], [125, warehouseHeight - 75 ], [225, warehouseHeight - 75 ], [275, warehouseHeight - 75 ], [325, warehouseHeight - 75 ], [375, warehouseHeight - 75 ], [425, warehouseHeight - 75 ], [475, warehouseHeight - 75 ], [525, warehouseHeight - 75 ], [575, warehouseHeight - 75 ]])
 
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
 for i in range(len(startPosx)):
