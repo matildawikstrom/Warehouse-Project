@@ -16,6 +16,8 @@ chargingRate = 0.05
 consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
+nNodesx = 6
+nNodesy = 3
 
 
 class AGV(object):
@@ -66,17 +68,33 @@ shelfs = []
 shelfPositions = [(75, warehouseHeight - 125 ), (125, warehouseHeight - 125 ), (225, warehouseHeight - 125 ), (275, warehouseHeight - 125 ), (325, warehouseHeight - 125 ), (375, warehouseHeight - 125 ), (425, warehouseHeight - 125 ), (475, warehouseHeight - 125 ), (525, warehouseHeight - 125 ), (575, warehouseHeight - 125 )]
 #print(shelfPositions)
 
+# Initialize AGVs
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
 for i in range(len(startPosx)):
     pos = (startPosx[i], warehouseHeight - 75)
     a = AGV(pos, fullyCharged)
     AGVs.append(a)
 
-
+# Initialize Shelfs
 for i in range(len(shelfPositions)):
     pos = shelfPositions[i]
     s = Shelf(pos, 1)
     shelfs.append(s)
+
+
+# Create Nodes
+nodes = []
+for n in range(nNodesy):
+    xPos = np.linspace(laneWidth/2, warehouseWidth - laneWidth/2, nNodesx)
+    for i in range(len(xPos)):
+        pos = (np.int(xPos[i]), warehouseHeight - 75 - np.int(n * (warehouseHeight-100)/(nNodesy-1)))
+        nodes.append(pos)
+
+print(nodes)
+#plt.plot(nodes[:,0],nodes[:,1], 'o')
+
+
+
 
 
 plt.figure(2)
