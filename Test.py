@@ -1,6 +1,7 @@
 ################################################# Packages/Libraries ##########################################################
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 
 ############################################ Variables and Functions ##########################################################
@@ -16,6 +17,7 @@ chargingRate = 0.05
 consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
+taskFactor = .05        #Probability to create a task for each shelf
 
 
 class AGV(object):
@@ -51,10 +53,19 @@ def plot_AGVs(AGV):
     #plt.pause(1)
 
 
-def plot_shelfs(shelfs):
+def plot_shelfs(shelfs):        #A function to plot the shelfs
     for s in shelfs:
         pos = list(s.position)
         plt.plot(pos[0], pos[1], 'rs')
+        
+
+def create_tasks(shelfs):     #A function to create tasks for each shelf
+    for s in shelfs:
+        chance = random.uniform(0, 1)
+        if (taskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
+            s.status = 'task'
+
+                
 
 
 ################################################## Driver Code ######################################################
