@@ -1,6 +1,7 @@
 ################################################# Packages/Libraries ##########################################################
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 
 ############################################ Variables and Functions ##########################################################
@@ -16,8 +17,10 @@ chargingRate = 0.05
 consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
+taskFactor = .05   #Probability to create a task for each shelf
 nNodesx = 6
 nNodesy = 3
+
 
 
 class AGV(object):
@@ -53,10 +56,22 @@ def plot_AGVs(AGV):
     #plt.pause(1)
 
 
-def plot_shelfs(shelfs):
+def plot_shelfs(shelfs):        #A function to plot the shelfs
     for s in shelfs:
         pos = list(s.position)
-        plt.plot(pos[0], pos[1], 'rs')
+        if (s.status == 'no task'):
+            plt.plot(pos[0], pos[1], 'rs')  #Red for those with no task...
+        if (s.status == 'task'):
+            plt.plot(pos[0], pos[1], 'ys')  #Yellow if it has a task!
+        
+
+def create_task(shelf):     #A function to create tasks for each shelf
+    for s in shelfs:
+        chance = random.uniform(0, 1)
+        if (taskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
+            s.status = 'task'
+
+                
 
 
 ################################################## Driver Code ######################################################
@@ -75,12 +90,17 @@ for i in range(len(startPosx)):
     a = AGV(pos, fullyCharged)
     AGVs.append(a)
 
-# Initialize Shelfs
+
+#Update the list 'shelfs' to contain each shelf here:
 for i in range(len(shelfPositions)):
     pos = shelfPositions[i]
     s = Shelf(pos, 1)
     shelfs.append(s)
 
+
+# Time to give some tasks to each shelf!
+for s in range(len(shelfs)):
+    create_task(s)
 
 # Create Nodes
 nodes = []
@@ -92,8 +112,6 @@ for n in range(nNodesy):
 
 print(nodes)
 #plt.plot(nodes[:,0],nodes[:,1], 'o')
-
-
 
 
 
