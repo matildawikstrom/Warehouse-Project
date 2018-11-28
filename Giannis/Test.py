@@ -53,11 +53,9 @@ def plot_AGVs(AGV):
 
 
 def plot_shelfs(shelfs):
-    plt.figure(2)
     for s in shelfs:
         pos = list(s.position)
-        plt.plot(pos[0], pos[1], 'rs')
-    plt.show()
+        
 
 
 
@@ -67,28 +65,15 @@ def plot_shelfs(shelfs):
 
 AGVs = []
 shelfs = []
-#<<<<<<< HEAD
-shelfPositions = [(75, warehouseHeight - 75 ), (125, warehouseHeight - 75 ), (225, warehouseHeight - 75 ), (275, warehouseHeight - 75 ), (325, warehouseHeight - 75 ), (375, warehouseHeight - 75 ), (425, warehouseHeight - 75 ), (475, warehouseHeight - 75 ), (525, warehouseHeight - 75 ), (575, warehouseHeight - 75 )]
-#print(shelfPositions)
-#=======
-#shelfPositions = np.array([[75, warehouseHeight - 75 ], [125, warehouseHeight - 75 ], [225, warehouseHeight - 75 ], [275, warehouseHeight - 75 ], [325, warehouseHeight - 75 ], [375, warehouseHeight - 75 ], [425, warehouseHeight - 75 ], [475, warehouseHeight - 75 ], [525, warehouseHeight - 75 ], [575, warehouseHeight - 75 ]])
+shelfPositions = np.array([[75, warehouseHeight - 75 ], [125, warehouseHeight - 75 ], [225, warehouseHeight - 75 ], [275, warehouseHeight - 75 ], [325, warehouseHeight - 75 ], [375, warehouseHeight - 75 ], [425, warehouseHeight - 75 ], [475, warehouseHeight - 75 ], [525, warehouseHeight - 75 ], [575, warehouseHeight - 75 ]])
 
-#>>>>>>> refs/remotes/origin/Giannis
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
 for i in range(len(startPosx)):
     pos = (startPosx[i], warehouseHeight - 75)
     a = AGV(pos, fullyCharged)
     AGVs.append(a)
 
-
-for i in range(len(shelfPositions)):
-    pos = shelfPositions[i]
-    print(pos)
-    s = Shelf(pos, 1)
-    shelfs.append(s)
-
 plot_AGVs(AGVs)
-plot_shelfs(shelfs)
 
 
 
