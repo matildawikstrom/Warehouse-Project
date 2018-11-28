@@ -33,7 +33,6 @@ class Shelf(object):
         self.priority = 1
 
 def plot_AGVs(AGV):
-    plt.clf()
     for a in AGV:
         pos = np.array(a.position)
         x = pos[0]
@@ -53,13 +52,9 @@ def plot_AGVs(AGV):
 
 
 def plot_shelfs(shelfs):
-    plt.figure(2)
     for s in shelfs:
         pos = list(s.position)
         plt.plot(pos[0], pos[1], 'rs')
-    plt.show()
-
-
 
 
 ################################################## Driver Code ######################################################
@@ -67,13 +62,10 @@ def plot_shelfs(shelfs):
 
 AGVs = []
 shelfs = []
-#<<<<<<< HEAD
-shelfPositions = [(75, warehouseHeight - 75 ), (125, warehouseHeight - 75 ), (225, warehouseHeight - 75 ), (275, warehouseHeight - 75 ), (325, warehouseHeight - 75 ), (375, warehouseHeight - 75 ), (425, warehouseHeight - 75 ), (475, warehouseHeight - 75 ), (525, warehouseHeight - 75 ), (575, warehouseHeight - 75 )]
-#print(shelfPositions)
-#=======
-#shelfPositions = np.array([[75, warehouseHeight - 75 ], [125, warehouseHeight - 75 ], [225, warehouseHeight - 75 ], [275, warehouseHeight - 75 ], [325, warehouseHeight - 75 ], [375, warehouseHeight - 75 ], [425, warehouseHeight - 75 ], [475, warehouseHeight - 75 ], [525, warehouseHeight - 75 ], [575, warehouseHeight - 75 ]])
 
-#>>>>>>> refs/remotes/origin/Giannis
+shelfPositions = [(75, warehouseHeight - 125 ), (125, warehouseHeight - 125 ), (225, warehouseHeight - 125 ), (275, warehouseHeight - 125 ), (325, warehouseHeight - 125 ), (375, warehouseHeight - 125 ), (425, warehouseHeight - 125 ), (475, warehouseHeight - 125 ), (525, warehouseHeight - 125 ), (575, warehouseHeight - 125 )]
+#print(shelfPositions)
+
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
 for i in range(len(startPosx)):
     pos = (startPosx[i], warehouseHeight - 75)
@@ -83,13 +75,15 @@ for i in range(len(startPosx)):
 
 for i in range(len(shelfPositions)):
     pos = shelfPositions[i]
-    print(pos)
     s = Shelf(pos, 1)
     shelfs.append(s)
 
+
+plt.figure(2)
+plt.clf()
 plot_AGVs(AGVs)
 plot_shelfs(shelfs)
-
+plt.show()
 
 
 
