@@ -56,10 +56,13 @@ def plot_AGVs(AGV):
 def plot_shelfs(shelfs):        #A function to plot the shelfs
     for s in shelfs:
         pos = list(s.position)
-        plt.plot(pos[0], pos[1], 'rs')
+        if (s.status == 'no task'):
+            plt.plot(pos[0], pos[1], 'rs')  #Red for those with no task...
+        if (s.status == 'task'):
+            plt.plot(pos[0], pos[1], 'ys')  #Yellow if it has a task!
         
 
-def create_tasks(shelfs):     #A function to create tasks for each shelf
+def create_task(shelf):     #A function to create tasks for each shelf
     for s in shelfs:
         chance = random.uniform(0, 1)
         if (taskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
@@ -84,12 +87,18 @@ for i in range(len(startPosx)):
     AGVs.append(a)
 
 
+#Update the list 'shelfs' to contain each shelf here:
 for i in range(len(shelfPositions)):
     pos = shelfPositions[i]
     s = Shelf(pos, 1)
     shelfs.append(s)
 
-
+#Time to give some tasks to each shelf!
+for s in range(len(shelfs)):
+    create_task(s)
+        
+    
+    
 plt.figure(2)
 plt.clf()
 plot_AGVs(AGVs)
