@@ -12,7 +12,7 @@ warehouseHeight = 550
 shelfWidth = 50
 laneWidth = 50
 nbrOfAGVs = 6
-speed = 2
+speed = 5
 AGVRadius = 12.5
 chargingRate = 0.05
 consumingRate = 0.005
@@ -44,37 +44,34 @@ class Shelf(object):
 def update_AGV_direction(a, nodes):
     chargeBias = 1
     if a.power <= thresholdPower:
-        chargeBias = 1.8
+        chargeBias = 0.25
 
     nodeNbr = nodes.index(a.position)
     r = np.random.rand()
 
-    if nodeNbr == 0 or nodeNbr == 2 or nodeNbr == 4:
+    if nodeNbr in [0, 2, 4]:
         a.direction = 0
-    if nodeNbr == 5 or nodeNbr == 11:
+    if nodeNbr in [5, 11]:
             a.direction = -np.pi/2
-    if nodeNbr == 13 or nodeNbr == 15 or nodeNbr == 17:
-        a.direction = np.pi
-    if nodeNbr == 1 or nodeNbr == 3 or nodeNbr == 7 or nodeNbr == 9:
+    if nodeNbr in [1, 3, 7, 9]:
         if r < 1/2:
             a.direction = 0
         else:
             a.direction = -np.pi/2
-    if nodeNbr == 6 or nodeNbr == 8 or nodeNbr == 10:
+    if nodeNbr in [6, 8, 10]:
         if r < chargeBias*1/2:
             a.direction = 0
         else:
             a.direction = np.pi/2
-    if nodeNbr == 12 or nodeNbr == 14 or nodeNbr == 16:
+    if nodeNbr in [14, 16]:
         if r < chargeBias*1/2:
             a.direction = np.pi
         else:
-            a.direction = np.pi /2
-    if nodeNbr == 13 or nodeNbr == 15:
-        if r < 1/2:
-            a.direction = np.pi
-        else:
-            a.direction = -np.pi /2
+            a.direction = np.pi/2
+    if nodeNbr in [13, 15, 17]:
+        a.direction = np.pi
+    if nodeNbr == 12:
+        a.direction = np.pi/2
     return a
 
 
@@ -241,7 +238,7 @@ for n in range(nNodesy):
 #plt.plot(nodes[:,0],nodes[:,1], 'o')
 
 
-for i in range(100):
+for i in range(1000):
     plt.figure(2)
     plt.clf()
     plot_AGVs(AGVs)
