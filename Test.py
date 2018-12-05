@@ -40,6 +40,9 @@ class Shelf(object):
 
 def update_AGV_position(AGV, nodes):
     for a in AGV:
+        chargeBias = 1
+        if a.power <= 3.5:
+            chargeBias = 1.8
         if a.position in nodes:
             nodeNbr = nodes.index(a.position)
             r = np.random.rand()
@@ -56,12 +59,12 @@ def update_AGV_position(AGV, nodes):
                 else:
                     a.direction = -np.pi/2
             if nodeNbr == 6 or nodeNbr == 8 or nodeNbr == 10:
-                if r < 1/2:
+                if r < chargeBias*1/2:
                     a.direction = 0
                 else:
                     a.direction = np.pi/2
             if nodeNbr == 12 or nodeNbr == 14 or nodeNbr == 16:
-                if r < 1/2:
+                if r < chargeBias*1/2:
                     a.direction = np.pi
                 else:
                     a.direction = np.pi /2
