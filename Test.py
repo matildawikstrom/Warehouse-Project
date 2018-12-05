@@ -12,7 +12,7 @@ warehouseHeight = 550
 shelfWidth = 50
 laneWidth = 50
 nbrOfAGVs = 6
-speed = 4
+speed = 2
 AGVRadius = 12.5
 chargingRate = 0.05
 consumingRate = 0.005
@@ -21,6 +21,8 @@ fullyCharged = 10
 taskFactor = .05   #Probability to create a task for each shelf
 nNodesx = 6
 nNodesy = 3
+unloadingTime = 20
+loadingTime = 10
 
 
 class AGV(object):
@@ -28,8 +30,9 @@ class AGV(object):
     def __init__(self, pos, fullyCharged):
         self.position = pos
         self.direction = - np.pi/2
-        self.status = 'free'
+        self.status = 'free'  # free, charging, occupied, loading, unloading
         self.power = fullyCharged
+        self.clock = 0
 
 class Shelf(object):
 
@@ -38,42 +41,106 @@ class Shelf(object):
         self.status = 'no task'
         self.priority = 1
 
-def update_AGV_position(AGV, nodes):
+def update_AGV_direction(a, nodes):
+    chargeBias = 1
+    if a.power <= thresholdPower:
+        chargeBias = 1.8
+
+    nodeNbr = nodes.index(a.position)
+    r = np.random.rand()
+
+    if nodeNbr == 0 or nodeNbr == 2 or nodeNbr == 4:
+        a.direction = 0
+    if nodeNbr == 5 or nodeNbr == 11:
+            a.direction = -np.pi/2
+    if nodeNbr == 13 or nodeNbr == 15 or nodeNbr == 17:
+        a.direction = np.pi
+    if nodeNbr == 1 or nodeNbr == 3 or nodeNbr == 7 or nodeNbr == 9:
+        if r < 1/2:
+            a.direction = 0
+        else:
+            a.direction = -np.pi/2
+    if nodeNbr == 6 or nodeNbr == 8 or nodeNbr == 10:
+        if r < chargeBias*1/2:
+            a.direction = 0
+        else:
+            a.direction = np.pi/2
+    if nodeNbr == 12 or nodeNbr == 14 or nodeNbr == 16:
+        if r < chargeBias*1/2:
+            a.direction = np.pi
+        else:
+            a.direction = np.pi /2
+    if nodeNbr == 13 or nodeNbr == 15:
+        if r < 1/2:
+            a.direction = np.pi
+        else:
+            a.direction = -np.pi /2
+    return a
+
+
+def update_AGV_position(a):
+    pos = list(a.position)
+    pos[0] = pos[0] + speed * np.cos(a.direction)
+    pos[1] = pos[1] + speed * np.sin(a.direction)
+    a.position = tuple(pos)
+    return a
+
+
+#def check_for_shelf(a,shelfs):
+
+#    return a
+
+def move_AGV(AGV, nodes, shelfPositions):
     for a in AGV:
-        chargeBias = 1
-        if a.power <= 3.5:
-            chargeBias = 1.8
-        if a.position in nodes:
-            nodeNbr = nodes.index(a.position)
-            r = np.random.rand()
+        # if charging, loading, unloading:
+        if a.status == 'loading':
+            if a.clock == loadingTime:
+                pos = list(a.position)
+                pos[1] = laneWidth*np.cos(a.direction)
+                a.position = tuple(pos)
+                a.clock = 0
+                a.status = 'occupied'
+            else:
+                a.clock = a.clock + 1
+        elif a.status == 'unloading':
+            if a.clock == unloadingTime:
+                pos = list(a.position)
+                pos[1] = laneWidth*np.cos(np.pi/2)
+                a.position = tuple(pos)
+                a.clock = 0
+                a.status == 'free'
+            else:
+                a.clock = a.clock + 1
+        elif a.status == 'charging':
+            if a.power == fullyCharged:
+                pos = list(a.position)
+                pos[1] = laneWidth*np.cos(a.direction)
+                a.position = tuple(pos)
+        elif a.position in nodes:
+            if a.power < thresholdPower:
+                nodeNbr = nodes.index(a.position)
+                if nodeNbr in [0,1,2,3,4,5]:
+                    pos = list(a.position)
+                    pos[1] = laneWidth * np.sin(np.pi/2)
+                    a.position = tuple(pos)
+                    a.direction = - np.pi/2
+                    a.status = 'charging'
+            else:
+                a = update_AGV_direction(a, nodes)
+                a = update_AGV_position(a)
+        else:
+            a = update_AGV_position(a)
+    return AGV
 
-            if nodeNbr == 0 or nodeNbr == 2 or nodeNbr == 4:
-                a.direction = 0
-            if nodeNbr == 5 or nodeNbr == 11:
-                    a.direction = -np.pi/2
-            if nodeNbr == 13 or nodeNbr == 15 or nodeNbr == 17:
-                a.direction = np.pi
-            if nodeNbr == 1 or nodeNbr == 3 or nodeNbr == 7 or nodeNbr == 9:
-                if r < 1/2:
-                    a.direction = 0
-                else:
-                    a.direction = -np.pi/2
-            if nodeNbr == 6 or nodeNbr == 8 or nodeNbr == 10:
-                if r < chargeBias*1/2:
-                    a.direction = 0
-                else:
-                    a.direction = np.pi/2
-            if nodeNbr == 12 or nodeNbr == 14 or nodeNbr == 16:
-                if r < chargeBias*1/2:
-                    a.direction = np.pi
-                else:
-                    a.direction = np.pi /2
-            if nodeNbr == 13 or nodeNbr == 15:
-                if r < 1/2:
-                    a.direction = np.pi
-                else:
-                    a.direction = -np.pi /2
+# else for each agv:
+    #check if on loading, charging or uloading position, move to appropriate pos
+    # update direction
+    # check if any agv in the way
+    # if no:
+    #   update position
 
+
+#
 
 
 
@@ -170,16 +237,19 @@ for n in range(nNodesy):
         pos = (np.int(xPos[i]), warehouseHeight - 75 - np.int(n * (warehouseHeight-100)/(nNodesy-1)))
         nodes.append(pos)
 
-print(nodes)
+#print(nodes)
 #plt.plot(nodes[:,0],nodes[:,1], 'o')
 
 
+for i in range(100):
+    plt.figure(2)
+    plt.clf()
+    plot_AGVs(AGVs)
+    plot_shelfs(shelfs)
+    plt.pause(0.005)
+    AGV = move_AGV(AGVs, nodes, shelfPositions)
 
-plt.figure(2)
-plt.clf()
-plot_AGVs(AGVs)
-plot_shelfs(shelfs)
-plt.show()
+
 
 
 
