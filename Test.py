@@ -7,8 +7,9 @@ import random
 ############################################ Variables and Functions ##########################################################
 
 
-warehouseWidth = 880
+warehouseWidth = 900
 warehouseHeight = 550
+shelfWidth = 50
 laneWidth = 50
 nbrOfAGVs = 6
 speed = 4
@@ -20,7 +21,6 @@ fullyCharged = 10
 taskFactor = .05   #Probability to create a task for each shelf
 nNodesx = 6
 nNodesy = 3
-
 
 
 class AGV(object):
@@ -96,6 +96,13 @@ def plot_AGVs(AGV):
         plt.axis([0, warehouseWidth, 0 , warehouseHeight])
     #plt.pause(1)
 
+def map_shelfs(shelf_matrix):
+    global shelfPositions
+    for (i,j), value in np.ndenumerate(shelf_matrix):
+        if(shelf_matrix[i][j] == 1):
+            pos = (50*j, 50*i)
+            shelfPositions.append(pos)
+
 
 def plot_shelfs(shelfs):        #A function to plot the shelfs
     for s in shelfs:
@@ -114,15 +121,27 @@ def create_task(shelf):     #A function to create tasks for each shelf
 
                 
 
-
 ################################################## Driver Code ######################################################
 
 
 AGVs = []
 shelfs = []
 
-shelfPositions = [(75, warehouseHeight - 125 ), (125, warehouseHeight - 125 ), (225, warehouseHeight - 125 ), (275, warehouseHeight - 125 ), (325, warehouseHeight - 125 ), (375, warehouseHeight - 125 ), (425, warehouseHeight - 125 ), (475, warehouseHeight - 125 ), (525, warehouseHeight - 125 ), (575, warehouseHeight - 125 )]
-#print(shelfPositions)
+#shelfPositions = [(75, warehouseHeight - 125 ), (125, warehouseHeight - 125 ), (225, warehouseHeight - 125 ), (275, warehouseHeight - 125 ), (325, warehouseHeight - 125 ), (375, warehouseHeight - 125 ), (425, warehouseHeight - 125 ), (475, warehouseHeight - 125 ), (525, warehouseHeight - 125 ), (575, warehouseHeight - 125 )]
+shelfPositions = []
+shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
+map_shelfs(shelf_test_matrix)
 
 # Initialize AGVs
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
