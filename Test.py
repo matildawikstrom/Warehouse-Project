@@ -179,7 +179,7 @@ def plot_AGVs(AGV):
         x = pos[0]
         y = pos[1]
         if a.status == 'free':
-            c = plt.Circle((x, y), AGVRadius, edgecolor='k', facecolor='blue')
+            c = plt.Circle((x, y), AGVRadius, edgecolor='k', facecolor='blue', zorder=1000)
         elif a.status == 'occupied':
             c = plt.Circle((x, y), AGVRadius, edgecolor='k', facecolor='red')
         else:
@@ -223,8 +223,6 @@ def create_task(shelfs):     #A function to create tasks for each shelf
 
 AGVs = []
 shelfs = []
-
-#shelfPositions = [(75, warehouseHeight - 125 ), (125, warehouseHeight - 125 ), (225, warehouseHeight - 125 ), (275, warehouseHeight - 125 ), (325, warehouseHeight - 125 ), (375, warehouseHeight - 125 ), (425, warehouseHeight - 125 ), (475, warehouseHeight - 125 ), (525, warehouseHeight - 125 ), (575, warehouseHeight - 125 )]
 shelfPositions = []
 shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
