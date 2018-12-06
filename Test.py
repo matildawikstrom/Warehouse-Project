@@ -7,7 +7,7 @@ import random
 ############################################ Variables and Functions ##########################################################
 
 
-warehouseWidth = 900
+warehouseWidth = 800
 warehouseHeight = 550
 shelfWidth = 50
 laneWidth = 50
@@ -186,7 +186,7 @@ def map_shelfs(shelf_matrix):
     global shelfPositions
     for (i,j), value in np.ndenumerate(shelf_matrix):
         if(shelf_matrix[i][j] == 1):
-            pos = (50*j, 50*i)
+            pos = (50*j+25, 50*i)
             shelfPositions.append(pos)
 
 
@@ -199,12 +199,12 @@ def plot_shelfs(shelfs):        #A function to plot the shelfs
             plt.plot(pos[0], pos[1], 'ys')  #Yellow if it has a task!
         
 
-def create_task(shelf):     #A function to create tasks for each shelf
+def create_task(shelfs):     #A function to create tasks for each shelf
     for s in shelfs:
         chance = random.uniform(0, 1)
         if (taskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
             s.status = 'task'
-
+    return shelfs
                 
 
 ################################################## Driver Code ######################################################
@@ -215,18 +215,18 @@ shelfs = []
 
 #shelfPositions = [(75, warehouseHeight - 125 ), (125, warehouseHeight - 125 ), (225, warehouseHeight - 125 ), (275, warehouseHeight - 125 ), (325, warehouseHeight - 125 ), (375, warehouseHeight - 125 ), (425, warehouseHeight - 125 ), (475, warehouseHeight - 125 ), (525, warehouseHeight - 125 ), (575, warehouseHeight - 125 )]
 shelfPositions = []
-shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
+shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
 map_shelfs(shelf_test_matrix)
 
 # Initialize AGVs
@@ -245,8 +245,7 @@ for i in range(len(shelfPositions)):
 
 
 # Time to give some tasks to each shelf!
-for s in range(len(shelfs)):
-    create_task(s)
+shelfs = create_task(shelfs)
 
 # Create Nodes
 nodes = []
