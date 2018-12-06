@@ -14,8 +14,8 @@ laneWidth = 50
 nbrOfAGVs = 6          #Number of vehicles, originally it was set to 6
 speed = 5
 AGVRadius = 12.5
-chargingRate = 0.2
-consumingRate = 0.2
+chargingRate = 0.05
+consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
 taskFactor = 0.0005   #Probability to create a task for each shelf
@@ -95,8 +95,6 @@ def update_AGV_power(AGVs):
                 a.power = a.power - consumingRate
             else:
                 a.power = 0
-        print(a.power)
-
 
 def check_for_shelf(a,shelfs, shelfPositions):
     pos = list(a.position)
@@ -126,49 +124,50 @@ def check_for_shelf(a,shelfs, shelfPositions):
 def move_AGV(AGV, nodes,shelfs, shelfPositions):
     for a in AGV:
         # if charging, loading, unloading:
-        if a.status == 'loading':
-            if a.clock == loadingTime:
-                pos = list(a.position)
-                pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
-                a.position = tuple(pos)
-                a.clock = 0
-                a.status = 'occupied'
-            else:
-                a.clock = a.clock + 1
-        elif a.status == 'unloading':
-            if a.clock == unloadingTime:
-                pos = list(a.position)
-                pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
-                a.position = tuple(pos)
-                a.clock = 0
-                a.status == 'free'
-            else:
-                a.clock = a.clock + 1
-        elif a.status == 'charging':
-            if a.power >= fullyCharged:
-                a.power = fullyCharged
-                pos = list(a.position)
-                pos[1] = pos[1] - laneWidth
-                a.position = tuple(pos)
-                a.status = 'free'
-        elif a.position in nodes:
-            if a.power <= thresholdPower:
-                nodeNbr = nodes.index(a.position)
-                if nodeNbr in [0,1,2,3,4,5]:
+        if a.power > consumingRate:
+            if a.status == 'loading':
+                if a.clock == loadingTime:
                     pos = list(a.position)
-                    pos[1] = pos[1] + laneWidth
+                    pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
                     a.position = tuple(pos)
-                    a.direction = - np.pi/2
-                    a.status = 'charging'
+                    a.clock = 0
+                    a.status = 'occupied'
+                else:
+                    a.clock = a.clock + 1
+            elif a.status == 'unloading':
+                if a.clock == unloadingTime:
+                    pos = list(a.position)
+                    pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
+                    a.position = tuple(pos)
+                    a.clock = 0
+                    a.status == 'free'
+                else:
+                    a.clock = a.clock + 1
+            elif a.status == 'charging':
+                if a.power >= fullyCharged:
+                    a.power = fullyCharged
+                    pos = list(a.position)
+                    pos[1] = pos[1] - laneWidth
+                    a.position = tuple(pos)
+                    a.status = 'free'
+            elif a.position in nodes:
+                if a.power <= thresholdPower:
+                    nodeNbr = nodes.index(a.position)
+                    if nodeNbr in [0,1,2,3,4,5]:
+                        pos = list(a.position)
+                        pos[1] = pos[1] + laneWidth
+                        a.position = tuple(pos)
+                        a.direction = - np.pi/2
+                        a.status = 'charging'
+                else:
+                    a = update_AGV_direction(a, nodes)
+                    a = update_AGV_position(a)
+            elif a.status == 'free':
+                tmp = check_for_shelf(a, shelfs, shelfPositions)
+                if tmp[1] == False:
+                    a = update_AGV_position(a)
             else:
-                a = update_AGV_direction(a, nodes)
                 a = update_AGV_position(a)
-        elif a.status == 'free':
-            tmp = check_for_shelf(a, shelfs, shelfPositions)
-            if tmp[1] == False:
-                a = update_AGV_position(a)
-        else:
-            a = update_AGV_position(a)
     return AGV
 
 
