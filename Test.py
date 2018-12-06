@@ -18,7 +18,7 @@ chargingRate = 0.05
 consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
-taskFactor = 0.0001   #Probability to create a task for each shelf
+taskFactor = 0.005   #Probability to create a task for each shelf
 nNodesx = 6
 nNodesy = 3
 unloadingTime = 20
@@ -43,7 +43,7 @@ class Shelf(object):
     def __init__(self, pos, priority):
         self.position = pos
         self.status = 'no task'
-        self.priority = 1
+        self.priority = priority
 
 def update_AGV_direction(a, nodes):
     chargeBias = 1
@@ -214,8 +214,8 @@ def plot_shelfs(shelfs):        #A function to plot the shelfs
 def create_task(shelfs, taskFactor):     #A function to create tasks for each shelf
     for s in shelfs:
         chance = random.uniform(0,1)
-        taskFactor = s.priority * taskFactor
-        if (taskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
+        scaledTaskFactor =  taskFactor/s.priority
+        if (scaledTaskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
             s.status = 'task'
     return shelfs
                 
@@ -240,8 +240,8 @@ shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
 map_shelfs(shelf_test_matrix)
-print(shelfPositions)
-print(shelfPriority)
+
+
 # Initialize AGVs
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
 for i in range(len(startPosx)):
@@ -253,7 +253,7 @@ for i in range(len(startPosx)):
 #Update the list 'shelfs' to contain each shelf here:
 for i in range(len(shelfPositions)):
     pos = shelfPositions[i]
-    prio = shelfPriority
+    prio = shelfPriority[i]
     s = Shelf(pos, prio)
     shelfs.append(s)
 
