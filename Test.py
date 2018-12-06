@@ -14,8 +14,8 @@ laneWidth = 50
 nbrOfAGVs = 6          #Number of vehicles, originally it was set to 6
 speed = 5
 AGVRadius = 12.5
-chargingRate = 0.05
-consumingRate = 0.005
+chargingRate = 0.2
+consumingRate = 0.2
 thresholdPower = 3.5
 fullyCharged = 10
 taskFactor = 0.0005   #Probability to create a task for each shelf
@@ -86,6 +86,17 @@ def update_AGV_position(a):
     a.position = tuple(pos)
     return a
 
+def update_AGV_power(AGVs):
+    for a in AGVs:
+        if a.status == 'charging':
+            a.power = a.power + chargingRate
+        else:
+            if a.power > consumingRate:
+                a.power = a.power - consumingRate
+            else:
+                a.power = 0
+        print(a.power)
+
 
 def check_for_shelf(a,shelfs, shelfPositions):
     pos = list(a.position)
@@ -134,16 +145,18 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
             else:
                 a.clock = a.clock + 1
         elif a.status == 'charging':
-            if a.power == fullyCharged:
+            if a.power >= fullyCharged:
+                a.power = fullyCharged
                 pos = list(a.position)
-                pos[1] = laneWidth*np.cos(a.direction)
+                pos[1] = pos[1] - laneWidth
                 a.position = tuple(pos)
+                a.status = 'free'
         elif a.position in nodes:
-            if a.power < thresholdPower:
+            if a.power <= thresholdPower:
                 nodeNbr = nodes.index(a.position)
                 if nodeNbr in [0,1,2,3,4,5]:
                     pos = list(a.position)
-                    pos[1] = laneWidth * np.sin(np.pi/2)
+                    pos[1] = pos[1] + laneWidth
                     a.position = tuple(pos)
                     a.direction = - np.pi/2
                     a.status = 'charging'
@@ -261,7 +274,8 @@ for i in range(simulationTime):
     plot_shelfs(shelfs)
     plot_AGVs(AGVs)
     plt.pause(0.0005)
-    AGVs = move_AGV(AGVs, nodes, shelfs, shelfPositions)
+    move_AGV(AGVs, nodes, shelfs, shelfPositions)
+    update_AGV_power(AGVs)
     # Time to give some tasks to each shelf!
     shelfs = create_task(shelfs)
 
