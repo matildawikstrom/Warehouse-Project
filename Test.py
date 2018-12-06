@@ -191,7 +191,7 @@ def plot_shelfs(shelfs):        #A function to plot the shelfs
     for s in shelfs:
         pos = list(s.position)
         if (s.status == 'no task'):
-            plt.plot(pos[0], pos[1], 'bs', markersize=20)  #Blue for those without a task...
+            plt.plot(pos[0], pos[1], 'ks', markersize=20)  #Blue for those without a task...
         if (s.status == 'task'):
             plt.plot(pos[0], pos[1], 'rs', markersize=20)  #Red if it has a task!
         
