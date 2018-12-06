@@ -8,10 +8,10 @@ import random
 
 
 warehouseWidth = 800
-warehouseHeight = 550
+warehouseHeight = 600
 shelfWidth = 50
 laneWidth = 50
-nbrOfAGVs = 26
+nbrOfAGVs = 6
 speed = 5
 AGVRadius = 12.5
 chargingRate = 0.05
@@ -24,7 +24,7 @@ nNodesy = 3
 unloadingTime = 20
 loadingTime = 10
 completed_tasks = 0
-simulationTime = 120
+simulationTime = 1200
 
 
 
@@ -89,11 +89,8 @@ def update_AGV_position(a):
 
 def check_for_shelf(a,shelfs, shelfPositions):
     pos = list(a.position)
-    check1 = tuple([np.int(pos[0] + laneWidth), np.int(pos[1])])
-    check2 = tuple([np.int(pos[0] - laneWidth), np.int(pos[1])])
-    check3 = tuple([np.int(pos[0] + 2*laneWidth), np.int(pos[1])])
-    check4 = tuple([np.int(pos[0] - 2*laneWidth), np.int(pos[1])])
-    #print(check1, check2)
+    check1 = tuple([pos[0] + laneWidth, pos[1]])
+    check2 = tuple([pos[0] - laneWidth, pos[1]])
     is_shelf = False
     if check1 in shelfPositions:
         shelfNbr = shelfPositions.index(check1)
@@ -103,7 +100,8 @@ def check_for_shelf(a,shelfs, shelfPositions):
             shelfs[shelfNbr].status = 'no task'
             a.parkdir = np.pi
             is_shelf = True
-    elif check2 in shelfPositions:
+    if check2 in shelfPositions:
+        print('yes')
         shelfNbr = shelfPositions.index(check2)
         if shelfs[shelfNbr].status == 'task':
             a.position = check2
@@ -111,23 +109,7 @@ def check_for_shelf(a,shelfs, shelfPositions):
             shelfs[shelfNbr].status = 'no task'
             a.parkdir = 0
             is_shelf = True
-    '''elif check3 in shelfPositions:
-        shelfNbr = shelfPositions.index(check3)
-        if shelfs[shelfNbr].status == 'task':
-            a.position = check3
-            a.status = 'loading'
-            shelfs[shelfNbr].status = 'no task'
-            a.parkdir = np.pi
-            is_shelf = True
-    elif check4 in shelfPositions:
-        shelfNbr = shelfPositions.index(check4)
-        if shelfs[shelfNbr].status == 'task':
-            a.position = check4
-            a.status = 'loading'
-            shelfs[shelfNbr].status = 'no task'
-            a.parkdir = 0
-            is_shelf = True'''
-    return [a,is_shelf]
+    return [a, is_shelf]
 
 
 def move_AGV(AGV, nodes,shelfs, shelfPositions):
@@ -177,12 +159,6 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
     return AGV
 
 
-
-#
-
-
-
-
 def plot_AGVs(AGV):
     for a in AGV:
         pos = np.array(a.position)
@@ -206,7 +182,7 @@ def map_shelfs(shelf_matrix):
     global shelfPositions
     for (i,j), value in np.ndenumerate(shelf_matrix):
         if(shelf_matrix[i][j] == 1):
-            pos = (50*j+25, 50*i)
+            pos = (50*j+laneWidth/2, 50*i+laneWidth/2)
             shelfPositions.append(pos)
     return shelfPositions
 
@@ -281,11 +257,11 @@ for n in range(nNodesy):
 print(shelfPositions)
 
 for i in range(simulationTime):
-    print(i)
+    #print(i)
     plt.figure(2)
     plt.clf()
-    plot_AGVs(AGVs)
     plot_shelfs(shelfs)
+    plot_AGVs(AGVs)
     plt.pause(0.0005)
     AGVs = move_AGV(AGVs, nodes, shelfs, shelfPositions)
     # Time to give some tasks to each shelf!
