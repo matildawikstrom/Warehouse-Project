@@ -33,6 +33,7 @@ class AGV(object):
         self.status = 'free'  # free, charging, occupied, loading, unloading
         self.power = fullyCharged
         self.clock = 0
+        self.parkdir = 0 #to be able to save direction before loading
 
 class Shelf(object):
 
@@ -83,11 +84,29 @@ def update_AGV_position(a):
     return a
 
 
-#def check_for_shelf(a,shelfs):
+def check_for_shelf(a,shelfs, shelfPositions):
+    pos = list(a.position)
+    check1 = tuple([pos[0]+50, pos[1]])
+    check2 = tuple([pos[0] - 50, pos[1]])
+    is_shelf = False
+    if check1 in shelfPositions:
+        shelfNbr = shelfPositions.index(check1)
+        if shelfs[shelfNbr] == 'task':
+            a.position = check1
+            a.status = 'loading'
+            a.parkdir = np.pi
+            is_shelf = True
+    elif check2 in shelfPositions:
+        shelfNbr = shelfPositions.index(check2)
+        if shelfs[shelfNbr] == 'task':
+            a.position = check2
+            a.status = 'loading'
+            a.parkdir = 0
+            is_shelf = True
+    return [a,is_shelf]
 
-#    return a
 
-def move_AGV(AGV, nodes, shelfPositions):
+def move_AGV(AGV, nodes,shelfs, shelfPositions):
     for a in AGV:
         # if charging, loading, unloading:
         if a.status == 'loading':
@@ -126,7 +145,9 @@ def move_AGV(AGV, nodes, shelfPositions):
                 a = update_AGV_direction(a, nodes)
                 a = update_AGV_position(a)
         else:
-            a = update_AGV_position(a)
+            tmp = check_for_shelf(a, shelfs, shelfPositions)
+            if tmp[1] == False:
+                a = update_AGV_position(a)
     return AGV
 
 # else for each agv:
@@ -159,6 +180,7 @@ def plot_AGVs(AGV):
         ax.add_artist(c)
         plt.axis([0, warehouseWidth, 0 , warehouseHeight])
     #plt.pause(1)
+
 
 def map_shelfs(shelf_matrix):
     global shelfPositions
@@ -244,7 +266,7 @@ for i in range(1000):
     plot_AGVs(AGVs)
     plot_shelfs(shelfs)
     plt.pause(0.005)
-    AGV = move_AGV(AGVs, nodes, shelfPositions)
+    AGV = move_AGV(AGVs, nodes, shelfs, shelfPositions)
 
 
 
