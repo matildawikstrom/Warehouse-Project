@@ -11,25 +11,26 @@ warehouseWidth = 800
 warehouseHeight = 550
 shelfWidth = 50
 laneWidth = 50
-nbrOfAGVs = 6
+nbrOfAGVs = 26
 speed = 5
 AGVRadius = 12.5
 chargingRate = 0.05
 consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
-taskFactor = .05   #Probability to create a task for each shelf
+taskFactor = .55   #Probability to create a task for each shelf
 nNodesx = 6
 nNodesy = 3
 unloadingTime = 20
 loadingTime = 10
+simulationTime = 120
 
 
 class AGV(object):
 
     def __init__(self, pos, fullyCharged):
         self.position = pos
-        self.direction = - np.pi/2
+        self.direction = 0
         self.status = 'free'  # free, charging, occupied, loading, unloading
         self.power = fullyCharged
         self.clock = 0
@@ -194,9 +195,9 @@ def plot_shelfs(shelfs):        #A function to plot the shelfs
     for s in shelfs:
         pos = list(s.position)
         if (s.status == 'no task'):
-            plt.plot(pos[0], pos[1], 'rs')  #Red for those with no task...
+            plt.plot(pos[0], pos[1], 'bs', markersize=20)  #Blue for those without a task...
         if (s.status == 'task'):
-            plt.plot(pos[0], pos[1], 'ys')  #Yellow if it has a task!
+            plt.plot(pos[0], pos[1], 'rs', markersize=20)  #Red if it has a task!
         
 
 def create_task(shelfs):     #A function to create tasks for each shelf
@@ -259,7 +260,8 @@ for n in range(nNodesy):
 #plt.plot(nodes[:,0],nodes[:,1], 'o')
 
 
-for i in range(1000):
+for i in range(simulationTime):
+    print(i)
     plt.figure(2)
     plt.clf()
     plot_AGVs(AGVs)
