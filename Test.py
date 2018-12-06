@@ -7,29 +7,32 @@ import random
 ############################################ Variables and Functions ##########################################################
 
 
-warehouseWidth = 900
-warehouseHeight = 550
+warehouseWidth = 800
+warehouseHeight = 600
 shelfWidth = 50
 laneWidth = 50
 nbrOfAGVs = 6
 speed = 5
 AGVRadius = 12.5
-chargingRate = 0.5
-consumingRate = 0.05
+chargingRate = 0.05
+consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
-taskFactor = .05   #Probability to create a task for each shelf
+taskFactor = 0.0005   #Probability to create a task for each shelf
 nNodesx = 6
 nNodesy = 3
 unloadingTime = 20
 loadingTime = 10
+completed_tasks = 0
+simulationTime = 1200
+
 
 
 class AGV(object):
 
     def __init__(self, pos, fullyCharged):
         self.position = pos
-        self.direction = - np.pi/2
+        self.direction = 0
         self.status = 'free'  # free, charging, occupied, loading, unloading
         self.power = fullyCharged
         self.clock = 0
@@ -97,24 +100,27 @@ def update_AGV_power(AGVs):
 
 def check_for_shelf(a,shelfs, shelfPositions):
     pos = list(a.position)
-    check1 = tuple([pos[0]+50, pos[1]])
-    check2 = tuple([pos[0] - 50, pos[1]])
+    check1 = tuple([pos[0] + laneWidth, pos[1]])
+    check2 = tuple([pos[0] - laneWidth, pos[1]])
     is_shelf = False
     if check1 in shelfPositions:
         shelfNbr = shelfPositions.index(check1)
-        if shelfs[shelfNbr] == 'task':
+        if shelfs[shelfNbr].status == 'task':
             a.position = check1
             a.status = 'loading'
+            shelfs[shelfNbr].status = 'no task'
             a.parkdir = np.pi
             is_shelf = True
-    elif check2 in shelfPositions:
+    if check2 in shelfPositions:
+        print('yes')
         shelfNbr = shelfPositions.index(check2)
-        if shelfs[shelfNbr] == 'task':
+        if shelfs[shelfNbr].status == 'task':
             a.position = check2
             a.status = 'loading'
+            shelfs[shelfNbr].status = 'no task'
             a.parkdir = 0
             is_shelf = True
-    return [a,is_shelf]
+    return [a, is_shelf]
 
 
 def move_AGV(AGV, nodes,shelfs, shelfPositions):
@@ -123,7 +129,7 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
         if a.status == 'loading':
             if a.clock == loadingTime:
                 pos = list(a.position)
-                pos[1] = laneWidth*np.cos(a.direction)
+                pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
                 a.position = tuple(pos)
                 a.clock = 0
                 a.status = 'occupied'
@@ -132,7 +138,7 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
         elif a.status == 'unloading':
             if a.clock == unloadingTime:
                 pos = list(a.position)
-                pos[1] = laneWidth*np.cos(np.pi/2)
+                pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
                 a.position = tuple(pos)
                 a.clock = 0
                 a.status == 'free'
@@ -158,22 +164,13 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
             else:
                 a = update_AGV_direction(a, nodes)
                 a = update_AGV_position(a)
-        else:
+        elif a.status == 'free':
             tmp = check_for_shelf(a, shelfs, shelfPositions)
             if tmp[1] == False:
                 a = update_AGV_position(a)
-
-# else for each agv:
-    #check if on loading, charging or uloading position, move to appropriate pos
-    # update direction
-    # check if any agv in the way
-    # if no:
-    #   update position
-
-
-#
-
-
+        else:
+            a = update_AGV_position(a)
+    return AGV
 
 
 def plot_AGVs(AGV):
@@ -199,25 +196,26 @@ def map_shelfs(shelf_matrix):
     global shelfPositions
     for (i,j), value in np.ndenumerate(shelf_matrix):
         if(shelf_matrix[i][j] == 1):
-            pos = (50*j, 50*i)
+            pos = (50*j+laneWidth/2, 50*i+laneWidth/2)
             shelfPositions.append(pos)
+    return shelfPositions
 
 
 def plot_shelfs(shelfs):        #A function to plot the shelfs
     for s in shelfs:
         pos = list(s.position)
         if (s.status == 'no task'):
-            plt.plot(pos[0], pos[1], 'rs')  #Red for those with no task...
+            plt.plot(pos[0], pos[1], 'ks', markersize=20)  #Blue for those without a task...
         if (s.status == 'task'):
-            plt.plot(pos[0], pos[1], 'ys')  #Yellow if it has a task!
+            plt.plot(pos[0], pos[1], 'rs', markersize=20)  #Red if it has a task!
         
 
-def create_task(shelf):     #A function to create tasks for each shelf
+def create_task(shelfs):     #A function to create tasks for each shelf
     for s in shelfs:
-        chance = random.uniform(0, 1)
+        chance = random.uniform(0,1)
         if (taskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
             s.status = 'task'
-
+    return shelfs
                 
 
 ################################################## Driver Code ######################################################
@@ -228,19 +226,19 @@ shelfs = []
 
 #shelfPositions = [(75, warehouseHeight - 125 ), (125, warehouseHeight - 125 ), (225, warehouseHeight - 125 ), (275, warehouseHeight - 125 ), (325, warehouseHeight - 125 ), (375, warehouseHeight - 125 ), (425, warehouseHeight - 125 ), (475, warehouseHeight - 125 ), (525, warehouseHeight - 125 ), (575, warehouseHeight - 125 )]
 shelfPositions = []
-shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
-map_shelfs(shelf_test_matrix)
+shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
+shelfPositions = map_shelfs(shelf_test_matrix)
 
 # Initialize AGVs
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
@@ -258,8 +256,7 @@ for i in range(len(shelfPositions)):
 
 
 # Time to give some tasks to each shelf!
-for s in range(len(shelfs)):
-    create_task(s)
+shelfs = create_task(shelfs)
 
 # Create Nodes
 nodes = []
@@ -271,17 +268,22 @@ for n in range(nNodesy):
 
 #print(nodes)
 #plt.plot(nodes[:,0],nodes[:,1], 'o')
+print(shelfPositions)
 
-
-for i in range(1000):
+for i in range(simulationTime):
+    #print(i)
     plt.figure(2)
     plt.clf()
-    plot_AGVs(AGVs)
     plot_shelfs(shelfs)
-    plt.pause(0.005)
-    move_AGV(AGVs, nodes, shelfs, shelfPositions)
+    plt.pause(0.005)    
+    plot_AGVs(AGVs)
+    plt.pause(0.0005)
+    AGVs = move_AGV(AGVs, nodes, shelfs, shelfPositions)
     update_AGV_power(AGVs)
-    
+
+    # Time to give some tasks to each shelf!
+    shelfs = create_task(shelfs)
+
 
 
 
