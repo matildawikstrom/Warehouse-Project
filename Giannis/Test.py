@@ -1,6 +1,7 @@
 ################################################# Packages/Libraries ##########################################################
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 
 ############################################ Variables and Functions ##########################################################
@@ -16,6 +17,8 @@ chargingRate = 0.05
 consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
+taskFactor = .04        #Probability to create a task for each shelf on each timestep
+timesteps = 10          #Number of timesteps
 
 
 class AGV(object):
@@ -33,7 +36,6 @@ class Shelf(object):
         self.priority = 1
 
 def plot_AGVs(AGV):
-    plt.clf()
     for a in AGV:
         pos = np.array(a.position)
         x = pos[0]
@@ -52,12 +54,22 @@ def plot_AGVs(AGV):
     #plt.pause(1)
 
 
-def plot_shelfs(shelfs):
+def plot_shelfs(shelfs):        #A function to plot the shelfs
     for s in shelfs:
         pos = list(s.position)
+        if (s.status == 'no task'):
+            plt.plot(pos[0], pos[1], 'rs')  #Red for those with no task...
+        if (s.status == 'task'):
+            plt.plot(pos[0], pos[1], 'ys')  #Yellow if it has a task!
         
 
+def create_task(shelf):     #A function to create tasks for each shelf
+    for s in shelfs:
+        chance = random.uniform(0, 1)
+        if (taskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
+            s.status = 'task'
 
+                
 
 
 ################################################## Driver Code ######################################################
@@ -65,7 +77,9 @@ def plot_shelfs(shelfs):
 
 AGVs = []
 shelfs = []
-shelfPositions = np.array([[75, warehouseHeight - 75 ], [125, warehouseHeight - 75 ], [225, warehouseHeight - 75 ], [275, warehouseHeight - 75 ], [325, warehouseHeight - 75 ], [375, warehouseHeight - 75 ], [425, warehouseHeight - 75 ], [475, warehouseHeight - 75 ], [525, warehouseHeight - 75 ], [575, warehouseHeight - 75 ]])
+
+shelfPositions = [(75, warehouseHeight - 125 ), (125, warehouseHeight - 125 ), (225, warehouseHeight - 125 ), (275, warehouseHeight - 125 ), (325, warehouseHeight - 125 ), (375, warehouseHeight - 125 ), (425, warehouseHeight - 125 ), (475, warehouseHeight - 125 ), (525, warehouseHeight - 125 ), (575, warehouseHeight - 125 )]
+#print(shelfPositions)
 
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
 for i in range(len(startPosx)):
@@ -73,8 +87,24 @@ for i in range(len(startPosx)):
     a = AGV(pos, fullyCharged)
     AGVs.append(a)
 
-plot_AGVs(AGVs)
 
+#Update the list 'shelfs' to contain each shelf here:
+for i in range(len(shelfPositions)):
+    pos = shelfPositions[i]
+    s = Shelf(pos, 1)
+    shelfs.append(s)
+
+#Time to give some tasks to each shelf! Do it for a few timesteps...
+for timestep in range(0, timesteps):
+    create_task(s)
+        
+    
+    
+plt.figure(2)
+plt.clf()
+plot_AGVs(AGVs)
+plot_shelfs(shelfs)
+plt.show()
 
 
 
