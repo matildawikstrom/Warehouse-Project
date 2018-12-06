@@ -86,21 +86,24 @@ def update_AGV_position(a):
 
 def check_for_shelf(a,shelfs, shelfPositions):
     pos = list(a.position)
-    check1 = tuple([pos[0]+50, pos[1]])
-    check2 = tuple([pos[0] - 50, pos[1]])
+    check1 = tuple([np.int(pos[0] + laneWidth), np.int(pos[1])])
+    check2 = tuple([np.int(pos[0] - laneWidth), np.int(pos[1])])
+    #print(check1, check2)
     is_shelf = False
     if check1 in shelfPositions:
         shelfNbr = shelfPositions.index(check1)
-        if shelfs[shelfNbr] == 'task':
+        if shelfs[shelfNbr].status == 'task':
             a.position = check1
             a.status = 'loading'
+            shelfs[shelfNbr].status = 'no task'
             a.parkdir = np.pi
             is_shelf = True
     elif check2 in shelfPositions:
         shelfNbr = shelfPositions.index(check2)
-        if shelfs[shelfNbr] == 'task':
+        if shelfs[shelfNbr].status == 'task':
             a.position = check2
             a.status = 'loading'
+            shelfs[shelfNbr].status = 'no task'
             a.parkdir = 0
             is_shelf = True
     return [a,is_shelf]
@@ -112,7 +115,7 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
         if a.status == 'loading':
             if a.clock == loadingTime:
                 pos = list(a.position)
-                pos[1] = laneWidth*np.cos(a.direction)
+                pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
                 a.position = tuple(pos)
                 a.clock = 0
                 a.status = 'occupied'
@@ -121,7 +124,7 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
         elif a.status == 'unloading':
             if a.clock == unloadingTime:
                 pos = list(a.position)
-                pos[1] = laneWidth*np.cos(np.pi/2)
+                pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
                 a.position = tuple(pos)
                 a.clock = 0
                 a.status == 'free'
@@ -145,6 +148,7 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                 a = update_AGV_direction(a, nodes)
                 a = update_AGV_position(a)
         else:
+
             tmp = check_for_shelf(a, shelfs, shelfPositions)
             if tmp[1] == False:
                 a = update_AGV_position(a)
@@ -188,6 +192,7 @@ def map_shelfs(shelf_matrix):
         if(shelf_matrix[i][j] == 1):
             pos = (50*j+25, 50*i)
             shelfPositions.append(pos)
+    return shelfPositions
 
 
 def plot_shelfs(shelfs):        #A function to plot the shelfs
@@ -227,7 +232,7 @@ shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
                               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
-map_shelfs(shelf_test_matrix)
+shelfPositions = map_shelfs(shelf_test_matrix)
 
 # Initialize AGVs
 startPosx = np.linspace(0 + laneWidth/2, warehouseWidth - laneWidth/2, nbrOfAGVs)
@@ -257,15 +262,16 @@ for n in range(nNodesy):
 
 #print(nodes)
 #plt.plot(nodes[:,0],nodes[:,1], 'o')
-
+print(shelfPositions)
 
 for i in range(1000):
     plt.figure(2)
     plt.clf()
     plot_AGVs(AGVs)
     plot_shelfs(shelfs)
-    plt.pause(0.005)
-    AGV = move_AGV(AGVs, nodes, shelfs, shelfPositions)
+    plt.pause(0.0005)
+    AGVs = move_AGV(AGVs, nodes, shelfs, shelfPositions)
+
 
 
 
