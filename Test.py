@@ -11,19 +11,19 @@ warehouseWidth = 800
 warehouseHeight = 550
 shelfWidth = 50
 laneWidth = 50
-nbrOfAGVs = 26
+nbrOfAGVs = 6          #Number of vehicles, originally it was set to 6
 speed = 5
 AGVRadius = 12.5
 chargingRate = 0.05
 consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
-taskFactor = .55   #Probability to create a task for each shelf
+taskFactor = .0005        #Probability to create a task for each shelf
 nNodesx = 6
 nNodesy = 3
 unloadingTime = 20
 loadingTime = 10
-simulationTime = 120
+simulationTime = 1000    #Simulation time, originally it was set to 1000
 
 
 class AGV(object):
@@ -226,7 +226,7 @@ shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
-                              [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]])
 map_shelfs(shelf_test_matrix)
 
@@ -262,6 +262,7 @@ for n in range(nNodesy):
 
 for i in range(simulationTime):
     print(i)
+    shelfs = create_task(shelfs)
     plt.figure(2)
     plt.clf()
     plot_AGVs(AGVs)
