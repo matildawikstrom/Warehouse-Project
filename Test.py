@@ -106,7 +106,6 @@ def update_AGV_power(AGVs):
                         a.status = 'charging'
                     else:
                         a.clock = a.clock + 1
-                        print(a.clock)
                 else:
                     a.power = 0
                     a.clock = 0
