@@ -25,6 +25,7 @@ unloadingTime = 20
 loadingTime = 10
 completed_tasks = 0
 simulationTime = 1200
+removalTime = 50
 
 
 
@@ -37,6 +38,7 @@ class AGV(object):
         self.power = fullyCharged
         self.clock = 0
         self.parkdir = 0 #to be able to save direction before loading
+        self.hasTask = False
 
 class Shelf(object):
 
@@ -94,7 +96,20 @@ def update_AGV_power(AGVs):
             if a.power > consumingRate:
                 a.power = a.power - consumingRate
             else:
-                a.power = 0
+                if a.status == 'out of battery':
+                    if a.clock >= removalTime:
+                        nodePos = list(nodes[0])
+                        nodePos[1] = nodePos[1] + laneWidth
+                        a.position = tuple(nodePos)
+                        a.clock = 0
+                        a.status = 'charging'
+                    else:
+                        a.clock = a.clock + 1
+                        print(a.clock)
+                else:
+                    a.power = 0
+                    a.clock = 0
+                    a.status = 'out of battery'
 
 def check_for_shelf(a,shelfs, shelfPositions):
     pos = list(a.position)
@@ -110,7 +125,6 @@ def check_for_shelf(a,shelfs, shelfPositions):
             a.parkdir = np.pi
             is_shelf = True
     if check2 in shelfPositions:
-        print('yes')
         shelfNbr = shelfPositions.index(check2)
         if shelfs[shelfNbr].status == 'task':
             a.position = check2
@@ -124,7 +138,7 @@ def check_for_shelf(a,shelfs, shelfPositions):
 def move_AGV(AGV, nodes,shelfs, shelfPositions):
     for a in AGV:
         # if charging, loading, unloading:
-        if a.power > consumingRate:
+        if a.power >= consumingRate:
             if a.status == 'loading':
                 if a.clock == loadingTime:
                     pos = list(a.position)
@@ -132,6 +146,7 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                     a.position = tuple(pos)
                     a.clock = 0
                     a.status = 'occupied'
+                    a.hasTask = True
                 else:
                     a.clock = a.clock + 1
             elif a.status == 'unloading':
@@ -141,6 +156,7 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                     a.position = tuple(pos)
                     a.clock = 0
                     a.status == 'free'
+                    a.hasTask = False
                 else:
                     a.clock = a.clock + 1
             elif a.status == 'charging':
@@ -149,16 +165,19 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                     pos = list(a.position)
                     pos[1] = pos[1] - laneWidth
                     a.position = tuple(pos)
-                    a.status = 'free'
+                    if a.hasTask == True:
+                        a.status = 'occupied'
+                    else:
+                        a.status = 'free'
+                    
             elif a.position in nodes:
-                if a.power <= thresholdPower:
-                    nodeNbr = nodes.index(a.position)
-                    if nodeNbr in [0,1,2,3,4,5]:
-                        pos = list(a.position)
-                        pos[1] = pos[1] + laneWidth
-                        a.position = tuple(pos)
-                        a.direction = - np.pi/2
-                        a.status = 'charging'
+                nodeNbr = nodes.index(a.position)
+                if nodeNbr in [0,1,2,3,4,5] and a.power <= thresholdPower:
+                    pos = list(a.position)
+                    pos[1] = pos[1] + laneWidth
+                    a.position = tuple(pos)
+                    a.direction = - np.pi/2
+                    a.status = 'charging'
                 else:
                     a = update_AGV_direction(a, nodes)
                     a = update_AGV_position(a)
