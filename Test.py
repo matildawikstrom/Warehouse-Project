@@ -8,7 +8,7 @@ import random
 
 
 warehouseWidth = 800
-warehouseHeight = 600
+warehouseHeight = 650
 shelfWidth = 50
 laneWidth = 50
 nbrOfAGVs = 6          #Number of vehicles, originally it was set to 6
@@ -100,7 +100,7 @@ def check_for_shelf(a,shelfs, shelfPositions):
             shelfs[shelfNbr].status = 'no task'
             a.parkdir = np.pi
             is_shelf = True
-    if check2 in shelfPositions:
+    if check2 in shelfPositions and is_shelf == False:
         print('yes')
         shelfNbr = shelfPositions.index(check2)
         if shelfs[shelfNbr].status == 'task':
@@ -125,14 +125,18 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
             else:
                 a.clock = a.clock + 1
         elif a.status == 'unloading':
-            if a.clock == unloadingTime:
+            if (a.clock == unloadingTime):
                 pos = list(a.position)
-                pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
+                a.direction = np.pi/2
+                pos[1] = pos[1] + laneWidth*np.cos(a.direction)
                 a.position = tuple(pos)
                 a.clock = 0
-                a.status == 'free'
-            else:
-                a.clock = a.clock + 1
+                a.status = 'free'
+            if (a.clock < unloadingTime):
+                pos = list(a.position)
+                pos[1] = 0.5 * laneWidth
+                a.position = tuple(pos)
+                a.clock +=  1
         elif a.status == 'charging':
             if a.power == fullyCharged:
                 pos = list(a.position)
@@ -159,15 +163,25 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
     return AGV
 
 
+
+def unload_AGVs(AGV):        #A function to unload the vehicles
+    for a in AGV:
+        pos = np.array(a.position)
+        y = pos[1]
+        if (a.status == 'occupied') and (y == 1.5 * laneWidth):
+            a.status = 'unloading'
+
+
+
 def plot_AGVs(AGV):
     for a in AGV:
         pos = np.array(a.position)
         x = pos[0]
         y = pos[1]
         if a.status == 'free':
-            c = plt.Circle((x, y), AGVRadius, edgecolor='k', facecolor='blue', zorder=1000)
+            c = plt.Circle((x, y), AGVRadius, edgecolor='k', facecolor='blue', zorder=1)
         elif a.status == 'occupied':
-            c = plt.Circle((x, y), AGVRadius, edgecolor='k', facecolor='red')
+            c = plt.Circle((x, y), AGVRadius, edgecolor='k', facecolor='red', zorder=1)
         else:
             c = plt.Circle((x, y), AGVRadius, edgecolor='k', facecolor='green')
 
@@ -202,6 +216,9 @@ def create_task(shelfs):     #A function to create tasks for each shelf
         if (taskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
             s.status = 'task'
     return shelfs
+
+
+
                 
 
 ################################################## Driver Code ######################################################
@@ -211,6 +228,7 @@ AGVs = []
 shelfs = []
 shelfPositions = []
 shelf_test_matrix = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
                               [0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0],
@@ -247,7 +265,7 @@ nodes = []
 for n in range(nNodesy):
     xPos = np.linspace(laneWidth/2, warehouseWidth - laneWidth/2, nNodesx)
     for i in range(len(xPos)):
-        pos = (np.int(xPos[i]), warehouseHeight - 75 - np.int(n * (warehouseHeight-100)/(nNodesy-1)))
+        pos = (np.int(xPos[i]), warehouseHeight - 75 - np.int(n * (warehouseHeight-150)/(nNodesy-1)))
         nodes.append(pos)
 
 #print(nodes)
@@ -264,6 +282,7 @@ for i in range(simulationTime):
     AGVs = move_AGV(AGVs, nodes, shelfs, shelfPositions)
     # Time to give some tasks to each shelf!
     shelfs = create_task(shelfs)
+    unload_AGVs(AGVs)
 
 
 
