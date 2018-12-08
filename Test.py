@@ -161,6 +161,13 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                 pos[1] = 0.5 * laneWidth
                 a.position = tuple(pos)
                 a.clock +=  1
+        elif a.status == 'charging':
+            if a.power == fullyCharged:
+                pos = list(a.position)
+                pos[1] = laneWidth*np.cos(a.direction)
+                a.position = tuple(pos)
+        elif a.position in nodes:
+            if a.power < thresholdPower:
         if a.power >= consumingRate:
             if a.status == 'loading':
                 if a.clock == loadingTime:
