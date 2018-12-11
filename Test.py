@@ -21,7 +21,7 @@ fullyCharged = 10
 taskFactor = 0.005   #Probability to create a task for each shelf
 nNodesx = 6
 nNodesy = 3
-unloadingTime = 20
+unloadingTime = 80
 loadingTime = 10
 completed_tasks = 0
 simulationTime = 1200
@@ -138,29 +138,7 @@ def check_for_shelf(a,shelfs, shelfPositions):
 
 def move_AGV(AGV, nodes,shelfs, shelfPositions):
     for a in AGV:
-        # if charging, loading, unloading:
-        if a.status == 'loading':
-            if a.clock == loadingTime:
-                pos = list(a.position)
-                pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
-                a.position = tuple(pos)
-                a.clock = 0
-                a.status = 'occupied'
-            else:
-                a.clock = a.clock + 1
-        elif a.status == 'unloading':
-            if (a.clock == unloadingTime):
-                pos = list(a.position)
-                a.direction = np.pi/2
-                pos[1] = pos[1] + laneWidth*np.cos(a.direction)
-                a.position = tuple(pos)
-                a.clock = 0
-                a.status = 'free'
-            if (a.clock < unloadingTime):
-                pos = list(a.position)
-                pos[1] = 0.5 * laneWidth
-                a.position = tuple(pos)
-                a.clock +=  1
+        # if charging, loading, unloading:      
         if a.power >= consumingRate:
             if a.status == 'loading':
                 if a.clock == loadingTime:
@@ -173,15 +151,18 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                 else:
                     a.clock = a.clock + 1
             elif a.status == 'unloading':
-                if a.clock == unloadingTime:
+                if (a.clock == unloadingTime):
                     pos = list(a.position)
-                    pos[0] = pos[0] + laneWidth*np.cos(a.parkdir)
+                    a.direction = np.pi/2
+                    pos[1] = pos[1] + laneWidth*np.sin(a.direction)
                     a.position = tuple(pos)
                     a.clock = 0
-                    a.status == 'free'
-                    a.hasTask = False
-                else:
-                    a.clock = a.clock + 1
+                    a.status = 'free'
+                if (a.clock < unloadingTime):
+                    pos = list(a.position)
+                    pos[1] = 0.5 * laneWidth
+                    a.position = tuple(pos)
+                    a.clock +=  1
             elif a.status == 'charging':
                 if a.power >= fullyCharged:
                     a.power = fullyCharged
@@ -191,8 +172,7 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                     if a.hasTask == True:
                         a.status = 'occupied'
                     else:
-                        a.status = 'free'
-                    
+                        a.status = 'free'             
             elif a.position in nodes:
                 nodeNbr = nodes.index(a.position)
                 if nodeNbr in [0,1,2,3,4,5] and a.power <= thresholdPower:
@@ -214,11 +194,19 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
 
 
 
-def unload_AGVs(AGV):        #A function to unload the vehicles
+def unload_AGVs(AGV):        #A function to unload the AGVs
     for a in AGV:
-        pos = np.array(a.position)
-        y = pos[1]
-        if (a.status == 'occupied') and (y == 1.5 * laneWidth):
+        posa = np.array(a.position)
+        xa = posa[0]
+        ya = posa[1]
+        if (a.status == 'occupied') and (ya == 1.5 * laneWidth) and (a.position in nodes[13:18]):
+            for b in AGV:       #Check if there is another AGV down which is unloading now
+                posb = np.array(b.position)
+                xb = posb[0]
+                yb = posb[1]
+                if (a != b) and (b.status == 'unloading') and (xa == xb): #Remain occupied if another AGV unloads
+                    a.status = 'occupied'
+                    return
             a.status = 'unloading'
 
 
@@ -269,6 +257,7 @@ def create_task(shelfs, taskFactor):     #A function to create tasks for each sh
         if (scaledTaskFactor > chance) and (s.status == 'no task'):   #Create task only if the shelf has no task
             s.status = 'task'
     return shelfs
+
 
 
 
@@ -326,6 +315,7 @@ for n in range(nNodesy):
 
 
 #plt.plot(nodes[:,0],nodes[:,1], 'o')
+print(nodes)
 
 for i in range(simulationTime):
     #print(i)
@@ -339,7 +329,6 @@ for i in range(simulationTime):
     # Time to give some tasks to each shelf!
     shelfs = create_task(shelfs, taskFactor)
     unload_AGVs(AGVs)
-
 
 
 
