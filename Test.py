@@ -25,7 +25,7 @@ unloadingTime = 20
 loadingTime = 10
 completed_tasks = 0
 simulationTime = 1200
-removalTime = 50
+removalTime = 10
 
 
 
@@ -94,16 +94,23 @@ def update_AGV_power(AGVs):
         if a.status == 'charging':
             a.power = a.power + chargingRate
         else:
-            if a.power > consumingRate:
+            if a.power > consumingRate and a.status == 'occupied':
+                a.power = a.power - 1.2*consumingRate
+            elif a.power > consumingRate and a.status != 'occupied':
                 a.power = a.power - consumingRate
             else:
                 if a.status == 'out of battery':
                     if a.clock >= removalTime:
-                        nodePos = list(nodes[0])
-                        nodePos[1] = nodePos[1] + laneWidth
-                        a.position = tuple(nodePos)
                         a.clock = 0
-                        a.status = 'charging'
+                        for node in nodes[0:6]: # Loop through all of the charging nodes
+                            nodePos = list(node)
+                            nodePos[1] = nodePos[1] + laneWidth
+                            nodePos = tuple(nodePos)
+                            if isEmpty(nodePos) == True: # Check if this node is empty
+                                a.position = nodePos
+                                a.clock = 0
+                                a.status = 'charging'
+                                break
                     else:
                         a.clock = a.clock + 1
                 else:
@@ -173,9 +180,9 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                     
             elif a.position in nodes:
                 nodeNbr = nodes.index(a.position)
-                if nodeNbr in [0,1,2,3,4,5] and a.power <= thresholdPower:
-                    pos = list(a.position)
-                    pos[1] = pos[1] + laneWidth
+                pos = list(a.position)
+                pos[1] = pos[1] + laneWidth # Position where the AGV will move to charge
+                if nodeNbr in [0,1,2,3,4,5] and a.power <= thresholdPower and isEmpty(pos):
                     a.position = tuple(pos)
                     a.direction = - np.pi/2
                     a.status = 'charging'
@@ -190,6 +197,11 @@ def move_AGV(AGV, nodes,shelfs, shelfPositions):
                 a = update_AGV_position(a)
     return AGV
 
+def isEmpty(position):
+    for a in AGVs:
+        if a.position == position:
+            return False
+    return True
 
 def plot_AGVs(AGV):
     for a in AGV:
