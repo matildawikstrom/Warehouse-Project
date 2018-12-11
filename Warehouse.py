@@ -182,8 +182,9 @@ def move_AGV(AGV, nodes, shelfs, shelfPositions):
                 nodeNbr = nodes.index(a.position)
                 pos = list(a.position)
                 pos[1] = pos[1] + laneWidth  # Position where the AGV will move to charge
+                pos = tuple(pos)
                 if nodeNbr in [0, 1, 2, 3, 4, 5] and a.power <= thresholdPower and isEmpty(pos):
-                    a.position = tuple(pos)
+                    a.position = pos
                     a.direction = - np.pi / 2
                     a.status = 'charging'
                 else:
