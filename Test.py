@@ -101,7 +101,6 @@ def update_AGV_power(AGVs):
             else:
                 if a.status == 'out of battery':
                     if a.clock >= removalTime:
-                        a.clock = 0
                         for node in nodes[0:6]: # Loop through all of the charging nodes
                             nodePos = list(node)
                             nodePos[1] = nodePos[1] + laneWidth
