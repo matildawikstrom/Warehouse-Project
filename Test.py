@@ -142,7 +142,7 @@ def check_for_shelf(a,shelfs, shelfPositions):
     return [a, is_shelf]
 
 
-def move_AGV(AGV, nodes,shelfs, shelfPositions):
+def move_AGV(AGV, nodes, shelfs, shelfPositions):
     for a in AGV:
         # if charging, loading, unloading:      
         if a.power >= consumingRate:
