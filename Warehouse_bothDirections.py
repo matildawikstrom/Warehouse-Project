@@ -51,31 +51,42 @@ def update_AGV_direction(a, nodes):
         chargeBias = 0.25
 
     nodeNbr = nodes.index(a.position)
+    print(nodeNbr)
     r = np.random.rand()
 
-    if nodeNbr in [0, 2, 4]:
-        a.direction = 0
-    if nodeNbr in [5, 11]:
-        a.direction = -np.pi / 2
-    if nodeNbr in [1, 3, 7, 9]:
-        if r < 1 / 2:
-            a.direction = 0
-        else:
-            a.direction = -np.pi / 2
-    if nodeNbr in [6, 8, 10]:
-        if r < chargeBias * 1 / 2:
-            a.direction = 0
-        else:
-            a.direction = np.pi / 2
-    if nodeNbr in [14, 16]:
-        if r < chargeBias * 1 / 2:
-            a.direction = np.pi
-        else:
-            a.direction = np.pi / 2
-    if nodeNbr in [13, 15, 17]:
-        a.direction = np.pi
+    if nodeNbr == 0:
+        a.direction -= np.sin(a.direction)*np.pi/2 + np.cos(a.direction)*np.pi/2
+    if nodeNbr == 5:
+        a.direction += np.sin(a.direction)*np.pi/2 - np.cos(a.direction)*np.pi/2
     if nodeNbr == 12:
-        a.direction = np.pi / 2
+        a.direction += -np.sin(a.direction)*np.pi/2 + np.cos(a.direction)*np.pi/2
+    if nodeNbr == 17:
+        a.direction += np.sin(a.direction)*np.pi/2 + np.cos(a.direction)*np.pi/2
+    if nodeNbr in [1, 2, 3, 4]:
+        if r < 1 / 2:
+            a.direction -= np.cos(a.direction)*np.pi/2 + np.sin(a.direction)*np.pi/2
+        elif r >= 1 / 2:
+            a.direction += np.sin(a.direction)*np.pi/2
+    if nodeNbr in [13, 14, 15, 16]:
+        if r < 1 / 2:
+            a.direction += np.cos(a.direction)*np.pi/2 + np.sin(a.direction)*np.pi/2
+        elif r >= 1 / 2:
+            a.direction -= np.sin(a.direction)*np.pi/2   
+    if nodeNbr in [7, 8, 9, 10]:
+        if r <  1 / 3:
+            a.direction += np.cos(a.direction)*np.pi/2 + np.sin(a.direction)*np.pi/2
+        elif r >= 1 / 3 and r < 2 / 3:
+            a.direction -= np.cos(a.direction)*np.pi/2 + np.sin(a.direction)*np.pi/2
+    if nodeNbr == 6:
+        if r < 1 / 2:
+            a.direction += -np.sin(a.direction)*np.pi/2 + np.cos(a.direction)*np.pi/2
+        elif r >= 1 / 2:
+            a.direction -= np.cos(a.direction)*np.pi/2
+    if nodeNbr == 11:
+        if r < 1 / 2:
+            a.direction += np.sin(a.direction)*np.pi/2 - np.cos(a.direction)*np.pi/2
+        elif r >= 1 / 2:
+            a.direction -= np.cos(a.direction)*np.pi/2
     return a
 
 
