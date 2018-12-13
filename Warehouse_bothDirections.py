@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
-
-
 ############################################ Variables and Functions ##########################################################
 
 
@@ -16,7 +14,7 @@ nbrOfAGVs = 6  # Number of vehicles, originally it was set to 6
 speed = 10
 AGVRadius = 12.5
 chargingRate = 0.05
-consumingRate = 0.005
+consumingRate = 0.01
 thresholdPower = 3.5
 fullyCharged = 10
 taskFactor = 0.001  # Probability to create a task for each shelf
@@ -26,6 +24,7 @@ unloadingTime = 20
 loadingTime = 10
 removalTime = 50
 collisionAvoidanceRange = 3
+
 
 class AGV(object):
 
@@ -55,29 +54,40 @@ def update_AGV_direction(a, nodes):
     nodeNbr = nodes.index(a.position)
     r = np.random.rand()
 
-    if nodeNbr in [0, 2, 4]:
-        a.direction = 0
-    if nodeNbr in [5, 11]:
-        a.direction = -np.pi / 2
-    if nodeNbr in [1, 3, 7, 9]:
-        if r < 1 / 2:
-            a.direction = 0
-        else:
-            a.direction = -np.pi / 2
-    if nodeNbr in [6, 8, 10]:
-        if r < chargeBias * 1 / 2:
-            a.direction = 0
-        else:
-            a.direction = np.pi / 2
-    if nodeNbr in [14, 16]:
-        if r < chargeBias * 1 / 2:
-            a.direction = np.pi
-        else:
-            a.direction = np.pi / 2
-    if nodeNbr in [13, 15, 17]:
-        a.direction = np.pi
+    if nodeNbr == 0:
+        a.direction -= np.sin(a.direction)*np.pi/2 + np.cos(a.direction)*np.pi/2
+    if nodeNbr == 5:
+        a.direction += np.sin(a.direction)*np.pi/2 - np.cos(a.direction)*np.pi/2
     if nodeNbr == 12:
-        a.direction = np.pi / 2
+        a.direction += -np.sin(a.direction)*np.pi/2 + np.cos(a.direction)*np.pi/2
+    if nodeNbr == 17:
+        a.direction += np.sin(a.direction)*np.pi/2 + np.cos(a.direction)*np.pi/2
+    if nodeNbr in [1, 2, 3, 4]:
+        if r < 1 / 2:
+            a.direction -= np.cos(a.direction)*np.pi/2 + np.sin(a.direction)*np.pi/2
+        elif r >= 1 / 2:
+            a.direction += np.sin(a.direction)*np.pi/2
+    if nodeNbr in [13, 14, 15, 16]:
+        if r < 1 / 2:
+            a.direction += np.cos(a.direction)*np.pi/2 + np.sin(a.direction)*np.pi/2
+        elif r >= 1 / 2:
+            a.direction -= np.sin(a.direction)*np.pi/2   
+    if nodeNbr in [7, 8, 9, 10]:
+        if r <  1 / 3:
+            a.direction += np.cos(a.direction)*np.pi/2 + np.sin(a.direction)*np.pi/2
+        elif r >= 1 / 3 and r < 2 / 3:
+            a.direction -= np.cos(a.direction)*np.pi/2 + np.sin(a.direction)*np.pi/2
+    if nodeNbr == 6:
+        if r < 1 / 2:
+            a.direction += -np.sin(a.direction)*np.pi/2 + np.cos(a.direction)*np.pi/2
+        elif r >= 1 / 2:
+            a.direction -= np.cos(a.direction)*np.pi/2
+    if nodeNbr == 11:
+        if r < 1 / 2:
+            a.direction += np.sin(a.direction)*np.pi/2 - np.cos(a.direction)*np.pi/2
+        elif r >= 1 / 2:
+            a.direction -= np.cos(a.direction)*np.pi/2
+    print(a.direction)
     return a
 
 
@@ -85,8 +95,8 @@ def update_AGV_position(a):
     if check_collision(a) == True:
         return a
     pos = list(a.position)
-    pos[0] = pos[0] + speed * np.cos(a.direction)
-    pos[1] = pos[1] + speed * np.sin(a.direction)
+    pos[0] = round(pos[0] + speed * np.cos(a.direction))
+    pos[1] = round(pos[1] + speed * np.sin(a.direction))
     a.position = tuple(pos)
     return a
 
@@ -339,7 +349,6 @@ def run_test(shelf_test_matrix, task_goal):
         a = AGV(pos, fullyCharged)
         AGVs.append(a)
 
-
     #Update the list 'shelfs' to contain each shelf here:
     for i in range(len(shelfPositions)):
         pos = shelfPositions[i]
@@ -365,9 +374,10 @@ def run_test(shelf_test_matrix, task_goal):
         plt.clf()
         TitleString = 'Time: ' + str(time) + ', Completed Tasks: ' + str(completed_tasks)
         plt.title(TitleString)
-        #plot_shelfs(shelfs)
-        #plot_AGVs(AGVs)
-        #plt.pause(0.0005)
+        plot_shelfs(shelfs)
+        plot_nodes(nodes)
+        plot_AGVs(AGVs)
+        plt.pause(0.0005)
         move_AGV(AGVs, nodes, shelfs, shelfPositions)
         update_AGV_power(AGVs)
         # Time to give some tasks to each shelf!
@@ -377,8 +387,7 @@ def run_test(shelf_test_matrix, task_goal):
 ################################################## Driver Code ######################################################
 
 
-####################################### ------ Layout 1 ------------################################################
-print('Layout 1')
+
 shelf_test_matrix = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                               [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                               [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
@@ -396,9 +405,9 @@ shelf_test_matrix = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 
 
 
-#task_goal_list = [25, 50, 75, 100,125, 150]
-task_goal_list = [2,1]
-NbrofTests = 1
+#task_goal_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+task_goal_list = [50]
+NbrofTests = 5
 avg_list = []
 for task_goal in task_goal_list:
     print('Goal: ', task_goal)
@@ -421,142 +430,7 @@ for task_goal in task_goal_list:
     avg_list.append(avgTime)
 
 
+plt.figure(3)
+plt.plot(task_goal_list, avg_list, 'k.')
+plt.show()
 
-
-
-####################################### ------ Layout 2 --------################################################
-print()
-print('Layout 2')
-shelf_test_matrix2 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
-                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
-                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
-                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
-                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
-                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
-                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
-
-
-
-
-task_goal_list = [25, 50, 75, 100,125, 150]
-#task_goal_list = [50]
-NbrofTests = 5
-avg_list = []
-for task_goal in task_goal_list:
-    print('Goal: ', task_goal)
-    timeList = []
-    for i in range(NbrofTests):
-        print(i+1)
-        completed_tasks = 0
-        shelfPositions = []
-        shelfPriority = []
-        nodes = []
-        AGVs = []
-        shelfs = []
-        timeList.append(run_test(shelf_test_matrix2,task_goal))
-
-
-    timeList = np.array(timeList)
-    print('Times: ',  timeList)
-    avgTime = np.sum(timeList)/NbrofTests
-    print('Avg Time: ',avgTime)
-    avg_list.append(avgTime)
-
-
-
-
-####################################### ------ Layout 3 --------################################################
-print()
-print('Layout 3')
-shelf_test_matrix2 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 5, 5, 0, 5, 5, 0, 3, 3, 0, 2, 2, 0, 2, 2, 0],
-                              [0, 5, 5, 0, 5, 5, 0, 3, 3, 0, 2, 2, 0, 2, 2, 0],
-                              [0, 5, 5, 0, 5, 5, 0, 3, 3, 0, 2, 2, 0, 2, 2, 0],
-                              [0, 5, 5, 0, 5, 5, 0, 3, 3, 0, 2, 2, 0, 2, 2, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 4, 4, 0, 4, 4, 0, 3, 3, 0, 1, 1, 0, 1, 1, 0],
-                              [0, 4, 4, 0, 4, 4, 0, 3, 3, 0, 1, 1, 0, 1, 1, 0],
-                              [0, 4, 4, 0, 4, 4, 0, 3, 3, 0, 1, 1, 0, 1, 1, 0],
-                              [0, 4, 4, 0, 4, 4, 0, 3, 3, 0, 1, 1, 0, 1, 1, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
-
-
-
-
-task_goal_list = [25, 50, 75, 100,125, 150]
-#task_goal_list = [50]
-NbrofTests = 5
-avg_list = []
-for task_goal in task_goal_list:
-    print('Goal: ', task_goal)
-    timeList = []
-    for i in range(NbrofTests):
-        print(i+1)
-        completed_tasks = 0
-        shelfPositions = []
-        shelfPriority = []
-        nodes = []
-        AGVs = []
-        shelfs = []
-        timeList.append(run_test(shelf_test_matrix2,task_goal))
-
-
-    timeList = np.array(timeList)
-    print('Times: ',  timeList)
-    avgTime = np.sum(timeList)/NbrofTests
-    print('Avg Time: ',avgTime)
-    avg_list.append(avgTime)
-
-
-
-####################################### ------ Layout 4 --------################################################
-print()
-print('Layout 4')
-shelf_test_matrix2 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 5, 4, 0, 4, 3, 0, 3, 2, 0, 2, 2, 0, 2, 1, 0],
-                              [0, 5, 4, 0, 4, 3, 0, 3, 2, 0, 2, 2, 0, 2, 1, 0],
-                              [0, 5, 4, 0, 4, 3, 0, 3, 2, 0, 2, 2, 0, 2, 1, 0],
-                              [0, 5, 4, 0, 4, 3, 0, 3, 2, 0, 2, 2, 0, 2, 1, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 5, 4, 0, 4, 3, 0, 3, 1, 0, 1, 2, 0, 2, 1, 0],
-                              [0, 5, 4, 0, 4, 3, 0, 3, 1, 0, 1, 2, 0, 2, 1, 0],
-                              [0, 5, 4, 0, 4, 3, 0, 3, 1, 0, 1, 2, 0, 2, 1, 0],
-                              [0, 5, 4, 0, 4, 3, 0, 3, 1, 0, 1, 2, 0, 2, 1, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
-
-
-
-
-task_goal_list = [25, 50, 75, 100,125, 150]
-#task_goal_list = [50]
-NbrofTests = 5
-avg_list = []
-for task_goal in task_goal_list:
-    print('Goal: ', task_goal)
-    timeList = []
-    for i in range(NbrofTests):
-        print(i+1)
-        completed_tasks = 0
-        shelfPositions = []
-        shelfPriority = []
-        nodes = []
-        AGVs = []
-        shelfs = []
-        timeList.append(run_test(shelf_test_matrix2,task_goal))
-
-
-    timeList = np.array(timeList)
-    print('Times: ',  timeList)
-    avgTime = np.sum(timeList)/NbrofTests
-    print('Avg Time: ',avgTime)
-    avg_list.append(avgTime)
