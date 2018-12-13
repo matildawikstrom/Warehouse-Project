@@ -23,7 +23,7 @@ nNodesy = 3
 unloadingTime = 20
 loadingTime = 10
 removalTime = 50
-
+collisionAvoidanceRange = 3
 
 class AGV(object):
 
@@ -80,12 +80,43 @@ def update_AGV_direction(a, nodes):
 
 
 def update_AGV_position(a):
+    if check_collision(a) == True:
+        return a
     pos = list(a.position)
     pos[0] = pos[0] + speed * np.cos(a.direction)
     pos[1] = pos[1] + speed * np.sin(a.direction)
     a.position = tuple(pos)
     return a
 
+def check_collision(a):
+    posCheck = list(a.position)[:]
+    for i in range(0, collisionAvoidanceRange):
+        posCheck[0] = round(posCheck[0] + speed * np.cos(a.direction))
+        posCheck[1] = round(posCheck[1] + speed * np.sin(a.direction))
+        if tuple(posCheck) in nodes:
+            for d in [-1,1]:
+                posCheckFromNode = posCheck[:]
+                directionCheck = a.direction + d*np.pi/2
+                for j in range(0, collisionAvoidanceRange):
+                    posCheckFromNode[0] = round(posCheckFromNode[0] + speed * np.cos(directionCheck))
+                    posCheckFromNode[1] = round(posCheckFromNode[1] + speed * np.sin(directionCheck))
+                    if isEmpty(tuple(posCheckFromNode), a) == False:
+                        if i>j:
+                            return True
+                        if i==j:
+                            pos = list(a.position)
+                            pos[0] = pos[0] - speed * np.cos(a.direction)
+                            pos[1] = pos[1] - speed * np.sin(a.direction)
+                            a.position = tuple(pos)
+                            return True
+        if isEmpty(tuple(posCheck), a) == False:
+            pos = list(a.position)
+            pos[0] = pos[0] - speed * np.cos(a.direction)
+            pos[1] = pos[1] - speed * np.sin(a.direction)
+            a.position = tuple(pos)
+            #a.direction += np.pi
+            return True
+    return False
 
 def update_AGV_power(AGVs):
     for a in AGVs:
@@ -103,7 +134,7 @@ def update_AGV_power(AGVs):
                             nodePos = list(node)
                             nodePos[1] = nodePos[1] + laneWidth
                             nodePos = tuple(nodePos)
-                            if isEmpty(nodePos) == True:  # Check if this node is empty
+                            if isEmpty(nodePos, a) == True:  # Check if this node is empty
                                 a.position = nodePos
                                 a.direction = np.pi/2
                                 a.clock = 0
@@ -185,7 +216,7 @@ def move_AGV(AGV, nodes, shelfs, shelfPositions):
                 pos = list(a.position)
                 pos[1] = pos[1] + laneWidth  # Position where the AGV will move to charge
                 pos = tuple(pos)
-                if nodeNbr in [0, 1, 2, 3, 4, 5] and a.power <= thresholdPower and isEmpty(pos):
+                if nodeNbr in [0, 1, 2, 3, 4, 5] and a.power <= thresholdPower and isEmpty(pos, a):
                     a.position = pos
                     a.direction = np.pi / 2
                     a.status = 'charging'
@@ -201,9 +232,9 @@ def move_AGV(AGV, nodes, shelfs, shelfPositions):
     return AGV
 
 
-def isEmpty(position):
+def isEmpty(position, AGV):
     for a in AGVs:
-        if a.position == position:
+        if a.position == position and a != AGV:
             return False
     return True
 
