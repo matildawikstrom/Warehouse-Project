@@ -2,6 +2,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import csv
+
 
 ############################################ Variables and Functions ##########################################################
 
@@ -14,7 +16,7 @@ nbrOfAGVs = 6  # Number of vehicles, originally it was set to 6
 speed = 10
 AGVRadius = 12.5
 chargingRate = 0.05
-consumingRate = 0.05
+consumingRate = 0.005
 thresholdPower = 3.5
 fullyCharged = 10
 taskFactor = 0.001  # Probability to create a task for each shelf
@@ -309,9 +311,9 @@ def run_test(shelf_test_matrix, task_goal):
         plt.clf()
         TitleString = 'Time: ' + str(time) + ', Completed Tasks: ' + str(completed_tasks)
         plt.title(TitleString)
-        plot_shelfs(shelfs)
-        plot_AGVs(AGVs)
-        plt.pause(0.0005)
+        #plot_shelfs(shelfs)
+        #plot_AGVs(AGVs)
+        #plt.pause(0.0005)
         move_AGV(AGVs, nodes, shelfs, shelfPositions)
         update_AGV_power(AGVs)
         # Time to give some tasks to each shelf!
@@ -321,7 +323,8 @@ def run_test(shelf_test_matrix, task_goal):
 ################################################## Driver Code ######################################################
 
 
-
+####################################### ------ Layout 1 ------------################################################
+print('Layout 1')
 shelf_test_matrix = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                               [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                               [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
@@ -339,9 +342,9 @@ shelf_test_matrix = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 
 
 
-#task_goal_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-task_goal_list = [50]
-NbrofTests = 5
+#task_goal_list = [25, 50, 75, 100,125, 150]
+task_goal_list = [2,1]
+NbrofTests = 1
 avg_list = []
 for task_goal in task_goal_list:
     print('Goal: ', task_goal)
@@ -364,7 +367,184 @@ for task_goal in task_goal_list:
     avg_list.append(avgTime)
 
 
-plt.figure(3)
-plt.plot(task_goal_list, avg_list, 'k.')
-plt.show()
 
+listToPlot = np.array(avg_list)
+
+# save array to file
+array = listToPlot.tolist()
+#print(array)
+file_name='warehouse_layout1_25-150_avg5'
+print('Done, writing to file: ' + file_name + '.csv')
+with open(file_name + '.csv', 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',')
+    writer.writerows(array)
+
+####################################### ------ Layout 2 --------################################################
+print()
+print('Layout 2')
+shelf_test_matrix2 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
+                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
+                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
+                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
+                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
+                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
+                              [0, 5, 5, 0, 4, 4, 0, 3, 3, 0, 2, 2, 0, 1, 1, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+
+
+
+
+task_goal_list = [25, 50, 75, 100,125, 150]
+#task_goal_list = [50]
+NbrofTests = 5
+avg_list = []
+for task_goal in task_goal_list:
+    print('Goal: ', task_goal)
+    timeList = []
+    for i in range(NbrofTests):
+        print(i+1)
+        completed_tasks = 0
+        shelfPositions = []
+        shelfPriority = []
+        nodes = []
+        AGVs = []
+        shelfs = []
+        timeList.append(run_test(shelf_test_matrix2,task_goal))
+
+
+    timeList = np.array(timeList)
+    print('Times: ',  timeList)
+    avgTime = np.sum(timeList)/NbrofTests
+    print('Avg Time: ',avgTime)
+    avg_list.append(avgTime)
+
+
+
+listToPlot = np.array(avg_list)
+
+# save array to file
+array = listToPlot.tolist()
+file_name='warehouse_layout2_25-150_avg5'
+print('Done, writing to file: ' + file_name + '.csv')
+with open(file_name + '.csv', 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',')
+    writer.writerows(array)
+
+
+####################################### ------ Layout 3 --------################################################
+print()
+print('Layout 3')
+shelf_test_matrix2 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 5, 5, 0, 5, 5, 0, 3, 3, 0, 2, 2, 0, 2, 2, 0],
+                              [0, 5, 5, 0, 5, 5, 0, 3, 3, 0, 2, 2, 0, 2, 2, 0],
+                              [0, 5, 5, 0, 5, 5, 0, 3, 3, 0, 2, 2, 0, 2, 2, 0],
+                              [0, 5, 5, 0, 5, 5, 0, 3, 3, 0, 2, 2, 0, 2, 2, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 4, 4, 0, 4, 4, 0, 3, 3, 0, 1, 1, 0, 1, 1, 0],
+                              [0, 4, 4, 0, 4, 4, 0, 3, 3, 0, 1, 1, 0, 1, 1, 0],
+                              [0, 4, 4, 0, 4, 4, 0, 3, 3, 0, 1, 1, 0, 1, 1, 0],
+                              [0, 4, 4, 0, 4, 4, 0, 3, 3, 0, 1, 1, 0, 1, 1, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+
+
+
+
+task_goal_list = [25, 50, 75, 100,125, 150]
+#task_goal_list = [50]
+NbrofTests = 5
+avg_list = []
+for task_goal in task_goal_list:
+    print('Goal: ', task_goal)
+    timeList = []
+    for i in range(NbrofTests):
+        print(i+1)
+        completed_tasks = 0
+        shelfPositions = []
+        shelfPriority = []
+        nodes = []
+        AGVs = []
+        shelfs = []
+        timeList.append(run_test(shelf_test_matrix2,task_goal))
+
+
+    timeList = np.array(timeList)
+    print('Times: ',  timeList)
+    avgTime = np.sum(timeList)/NbrofTests
+    print('Avg Time: ',avgTime)
+    avg_list.append(avgTime)
+
+
+
+listToPlot = np.array(avg_list)
+
+# save array to file
+array = listToPlot.tolist()
+file_name='warehouse_layout3_25-150_avg5'
+print('Done, writing to file: ' + file_name + '.csv')
+with open(file_name + '.csv', 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',')
+    writer.writerows(array)
+
+
+####################################### ------ Layout 4 --------################################################
+print()
+print('Layout 4')
+shelf_test_matrix2 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 5, 4, 0, 4, 3, 0, 3, 2, 0, 2, 2, 0, 2, 1, 0],
+                              [0, 5, 4, 0, 4, 3, 0, 3, 2, 0, 2, 2, 0, 2, 1, 0],
+                              [0, 5, 4, 0, 4, 3, 0, 3, 2, 0, 2, 2, 0, 2, 1, 0],
+                              [0, 5, 4, 0, 4, 3, 0, 3, 2, 0, 2, 2, 0, 2, 1, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 5, 4, 0, 4, 3, 0, 3, 1, 0, 1, 2, 0, 2, 1, 0],
+                              [0, 5, 4, 0, 4, 3, 0, 3, 1, 0, 1, 2, 0, 2, 1, 0],
+                              [0, 5, 4, 0, 4, 3, 0, 3, 1, 0, 1, 2, 0, 2, 1, 0],
+                              [0, 5, 4, 0, 4, 3, 0, 3, 1, 0, 1, 2, 0, 2, 1, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+
+
+
+
+task_goal_list = [25, 50, 75, 100,125, 150]
+#task_goal_list = [50]
+NbrofTests = 5
+avg_list = []
+for task_goal in task_goal_list:
+    print('Goal: ', task_goal)
+    timeList = []
+    for i in range(NbrofTests):
+        print(i+1)
+        completed_tasks = 0
+        shelfPositions = []
+        shelfPriority = []
+        nodes = []
+        AGVs = []
+        shelfs = []
+        timeList.append(run_test(shelf_test_matrix2,task_goal))
+
+
+    timeList = np.array(timeList)
+    print('Times: ',  timeList)
+    avgTime = np.sum(timeList)/NbrofTests
+    print('Avg Time: ',avgTime)
+    avg_list.append(avgTime)
+
+
+
+listToPlot = np.array(avg_list)
+
+# save array to file
+array = listToPlot.tolist()
+file_name='warehouse_layout4_25-150_avg5'
+print('Done, writing to file: ' + file_name + '.csv')
+with open(file_name + '.csv', 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',')
+    writer.writerows(array)
